@@ -6,11 +6,11 @@ const config: HardhatUserConfig = {
   networks: {
     base: {
       url: "https://mainnet.base.org",
-      accounts: [`e7b727ed109d20034039a504232a86bc5b5e0128db7e84b9a445c636ee0b82d5`],
+      accounts: [process.env.PRIVATE_KEY || '0x']
     },
     "base-sepolia": {
       url: "https://sepolia.base.org",
-      accounts: [`e7b727ed109d20034039a504232a86bc5b5e0128db7e84b9a445c636ee0b82d5`],
+      accounts: [process.env.PRIVATE_KEY || '0x']
     }
   }
 };
