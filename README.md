@@ -1,112 +1,77 @@
-# MiniKit Template
+# BaseBuilder Showcase 🔍
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-onchain --mini`](), configured with:
+> **The Product Hunt for Base** - Discover, review, and showcase the best applications in the Base ecosystem.
 
-- [MiniKit](https://docs.base.org/builderkits/minikit/overview)
-- [OnchainKit](https://www.base.org/builders/onchainkit)
-- [Tailwind CSS](https://tailwindcss.com)
-- [Next.js](https://nextjs.org/docs)
+[![Built on Base](https://img.shields.io/badge/Built%20on-Base-blue)](https://base.org)
+[![Solidity](https://img.shields.io/badge/Solidity-0.8.19-green)](https://soliditylang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-blue)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Getting Started
+## 🎯 What It Is
 
-1. Install dependencies:
-```bash
-npm install
-# or
-yarn install
-# or
-pnpm install
-# or
-bun install
-```
+BaseBuilder Showcase is a decentralized community-driven platform that serves as the **"Product Hunt for Base"**. It helps users discover, review, and showcase the best applications in the Base ecosystem while building a vibrant community around Base builders.
 
-2. Verify environment variables, these will be set up by the `npx create-onchain --mini` command:
+### 🌟 Live Demo
+- **Frontend**: [https://your-deployment-url.vercel.app](https://your-deployment-url.vercel.app)
+- **Smart Contract**: [`0xc7FAE06AD6c74442e7C263fe232F37B5eD5244B3`](https://sepolia.basescan.org/address/0xc7FAE06AD6c74442e7C263fe232F37B5eD5244B3)
 
-You can regenerate the FARCASTER Account Association environment variables by running `npx create-onchain --manifest` in your project directory.
+## 🚀 Features
 
-The environment variables enable the following features:
+### 📱 **Project Discovery**
+- **Complete directory** of Base ecosystem apps (DeFi, NFTs, Games, Tools)
+- **Category filters** - DeFi, Gaming, Social, Tools, NFTs, Infrastructure
+- **Search functionality** - Find specific projects quickly
+- **Featured projects** - Highlight trending or noteworthy apps
 
-- Frame metadata - Sets up the Frame Embed that will be shown when you cast your frame
-- Account association - Allows users to add your frame to their account, enables notifications
-- Redis API keys - Enable Webhooks and background notifications for your application by storing users notification details
+### 💬 **Community Reviews**
+- **Rate projects** 1-5 stars with written reviews
+- **Tag-based feedback** - "Great UX", "High fees", "Innovative"
+- **Verified reviews** - Only actual users can review
+- **Review helpfulness** voting - Community curates best reviews
 
-```bash
-# Shared/OnchainKit variables
-NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME=
-NEXT_PUBLIC_URL=
-NEXT_PUBLIC_ICON_URL=
-NEXT_PUBLIC_ONCHAINKIT_API_KEY=
+### 👥 **Builder Profiles**
+- **Developer showcases** - Profile pages for teams and builders
+- **Project portfolios** - See all apps from same developer
+- **Builder verification** - Recognition for legitimate developers
+- **Direct contact** - Connect with builders
 
-# Frame metadata
-FARCASTER_HEADER=
-FARCASTER_PAYLOAD=
-FARCASTER_SIGNATURE=
-NEXT_PUBLIC_APP_ICON=
-NEXT_PUBLIC_APP_SUBTITLE=
-NEXT_PUBLIC_APP_DESCRIPTION=
-NEXT_PUBLIC_APP_SPLASH_IMAGE=
-NEXT_PUBLIC_SPLASH_BACKGROUND_COLOR=
-NEXT_PUBLIC_APP_PRIMARY_CATEGORY=
-NEXT_PUBLIC_APP_HERO_IMAGE=
-NEXT_PUBLIC_APP_TAGLINE=
-NEXT_PUBLIC_APP_OG_TITLE=
-NEXT_PUBLIC_APP_OG_DESCRIPTION=
-NEXT_PUBLIC_APP_OG_IMAGE=
+### 🔗 **Social Integration**
+- **Farcaster integration** - Native sharing and discovery
+- **Social login** - Connect with your Farcaster account
+- **One-click sharing** - Share discoveries to your network
 
-# Redis config
-REDIS_URL=
-REDIS_TOKEN=
-```
+### ⛓️ **Blockchain Features**
+- **On-chain storage** - All projects and reviews stored permanently
+- **Anti-spam protection** - 0.001 ETH submission fee
+- **Decentralized governance** - Community-driven curation
+- **Review rewards** - Earn for quality contributions
 
-3. Start the development server:
-```bash
-npm run dev
-```
+## 🏗️ Tech Stack
 
-## Template Features
+### **Frontend**
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Web3 Integration**: Ethers.js v5
+- **MiniKit**: Coinbase MiniKit for Farcaster integration
 
-### Frame Configuration
-- `.well-known/farcaster.json` endpoint configured for Frame metadata and account association
-- Frame metadata automatically added to page headers in `layout.tsx`
+### **Blockchain**
+- **Smart Contracts**: Solidity 0.8.20
+- **Development**: Hardhat
+- **Network**: Base Sepolia (Testnet) / Base Mainnet
+- **Libraries**: OpenZeppelin (Security, Access Control)
 
-### Background Notifications
-- Redis-backed notification system using Upstash
-- Ready-to-use notification endpoints in `api/notify` and `api/webhook`
-- Notification client utilities in `lib/notification-client.ts`
+### **Infrastructure**
+- **Deployment**: Vercel (Frontend)
+- **RPC Provider**: Base RPC
+- **Block Explorer**: BaseScan
 
-### Theming
-- Custom theme defined in `theme.css` with OnchainKit variables
-- Pixel font integration with Pixelify Sans
-- Dark/light mode support through OnchainKit
+## 📦 Installation
 
-### MiniKit Provider
-The app is wrapped with `MiniKitProvider` in `providers.tsx`, configured with:
-- OnchainKit integration
-- Access to Frames context
-- Sets up Wagmi Connectors
-- Sets up Frame SDK listeners
-- Applies Safe Area Insets
+### **Prerequisites**
+- Node.js 18+
+- MetaMask or compatible Web3 wallet
+- Base Sepolia ETH for testing
 
-## Customization
-
-To get started building your own frame, follow these steps:
-
-1. Remove the DemoComponents:
-   - Delete `components/DemoComponents.tsx`
-   - Remove demo-related imports from `page.tsx`
-
-2. Start building your Frame:
-   - Modify `page.tsx` to create your Frame UI
-   - Update theme variables in `theme.css`
-   - Adjust MiniKit configuration in `providers.tsx`
-
-3. Add your frame to your account:
-   - Cast your frame to see it in action
-   - Share your frame with others to start building your community
-
-## Learn More
-
-- [MiniKit Documentation](https://docs.base.org/builderkits/minikit/overview)
-- [OnchainKit Documentation](https://docs.base.org/builderkits/onchainkit/getting-started)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+### **1. Clone Repository**
