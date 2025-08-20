@@ -36,10 +36,70 @@ export default function HomePage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshToggle, setRefreshToggle] = useState(false);
+  
+  // Wallet connection states
+  const [connectedWallet, setConnectedWallet] = useState<string>('');
+  const [showWalletMenu, setShowWalletMenu] = useState(false);
 
   useEffect(() => {
     if (!isFrameReady) setFrameReady();
   }, [isFrameReady, setFrameReady]);
+
+  // Check for connected wallet
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        try {
+          const provider = new ethers.providers.Web3Provider(window.ethereum);
+          const accounts = await provider.listAccounts();
+          if (accounts.length > 0) {
+            setConnectedWallet(accounts[0]);
+          }
+        } catch (error) {
+          console.log('No wallet connected:', error);
+        }
+      }
+    };
+
+    checkWalletConnection();
+
+    // Listen for account changes
+    if (window.ethereum) {
+      window.ethereum.on('accountsChanged', (accounts: string[]) => {
+        if (accounts.length > 0) {
+          setConnectedWallet(accounts[0]);
+        } else {
+          setConnectedWallet('');
+          setShowWalletMenu(false);
+        }
+      });
+    }
+
+    // Cleanup
+    return () => {
+      if (window.ethereum) {
+        window.ethereum.removeAllListeners('accountsChanged');
+      }
+    };
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.wallet-dropdown-container')) {
+        setShowWalletMenu(false);
+      }
+    };
+
+    if (showWalletMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showWalletMenu]);
 
   // Fetch projects from smart contract
   useEffect(() => {
@@ -133,12 +193,16 @@ export default function HomePage() {
                 'Infrastructure': ['Infrastructure', 'Protocol', 'Network']
               };
 
+              // Fixed rating scaling - ensure it's between 0 and 5
+              const scaledRating = averageRating > 0 ? 
+                Math.min(5, Math.max(0, averageRating / 100)) : 0;
+
               projectsData.push({
                 id: project.id.toString(),
                 name: project.name,
                 description: project.description,
                 category: project.category,
-                rating: averageRating > 0 ? Number((averageRating / 100).toFixed(1)) : 5.0, // Convert from scaled rating
+                rating: Number(scaledRating.toFixed(1)), // Proper rating scaling
                 reviewCount: project.reviewCount.toNumber(),
                 image: project.imageUrl || '/api/placeholder/400/300',
                 url: project.url,
@@ -200,6 +264,39 @@ export default function HomePage() {
     return matchesSearch && matchesCategory;
   });
 
+  const handleConnectWallet = async () => {
+    try {
+      if (window.ethereum) {
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+      } else {
+        alert('Please install MetaMask or another Web3 wallet');
+      }
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+      alert('Failed to connect wallet');
+    }
+  };
+
+  const handleDisconnectWallet = async () => {
+    try {
+      // Clear the connected wallet state
+      setConnectedWallet('');
+      setShowWalletMenu(false);
+      
+      // Note: There's no standard way to programmatically disconnect from MetaMask
+      // The user needs to disconnect manually from their wallet
+      alert('Please disconnect from your wallet extension (MetaMask, etc.) to fully disconnect.');
+    } catch (error) {
+      console.error('Error disconnecting wallet:', error);
+    }
+  };
+
+  const handleCopyAddress = () => {
+    navigator.clipboard.writeText(connectedWallet);
+    setShowWalletMenu(false);
+    alert('Address copied to clipboard!');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -215,20 +312,100 @@ export default function HomePage() {
               SHOWCASE
             </span>
           </div>
+          
+          {/* Enhanced wallet connection display */}
           <div className="flex items-center space-x-4">
-            {context?.user ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">
-                    {context.user.displayName?.[0] || '👤'}
-                  </span>
-                </div>
-                <span className="text-sm text-gray-600">
-                  {context.user.displayName || `FID: ${context.user.fid}`}
-                </span>
+            {connectedWallet ? (
+              <div className="relative wallet-dropdown-container">
+                {/* Connected Wallet Display - Clickable */}
+                <button
+                  onClick={() => setShowWalletMenu(!showWalletMenu)}
+                  className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors"
+                >
+                  {/* Wallet Info */}
+                  <div className="flex items-center space-x-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <div className="flex flex-col">
+                      <span className="text-xs text-green-700 font-medium">Connected</span>
+                      <span className="text-xs text-green-600 font-mono">
+                        {connectedWallet.slice(0, 6)}...{connectedWallet.slice(-4)}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Dropdown Arrow */}
+                  <div className="text-gray-400">
+                    <svg 
+                      className={`w-4 h-4 transition-transform ${showWalletMenu ? 'rotate-180' : ''}`} 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </button>
+
+                {/* Wallet Dropdown Menu */}
+                {showWalletMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                    <div className="p-4 border-b border-gray-100">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold">W</span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">Wallet Connected</p>
+                          <p className="text-sm text-gray-500 font-mono break-all">{connectedWallet}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-2">
+                      <button
+                        onClick={handleCopyAddress}
+                        className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                      >
+                        <span className="text-gray-400">📋</span>
+                        <span className="text-gray-700">Copy Address</span>
+                      </button>
+                      
+                      <button
+                        onClick={handleDisconnectWallet}
+                        className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-red-50 rounded-lg transition-colors text-red-600"
+                      >
+                        <span>🔌</span>
+                        <span>Disconnect Wallet</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Farcaster User (if available) */}
+                {context?.user && (
+                  <div className="flex items-center space-x-2 ml-4">
+                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-sm font-semibold">
+                        {context.user.displayName?.[0] || '👤'}
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs text-gray-500">Farcaster</span>
+                      <span className="text-sm text-gray-700">
+                        {context.user.displayName || `FID: ${context.user.fid}`}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
-              <span className="text-gray-500 text-sm">Not connected</span>
+              <button
+                onClick={handleConnectWallet}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+              >
+                <span>🔗</span>
+                <span>Connect Wallet</span>
+              </button>
             )}
           </div>
         </div>
