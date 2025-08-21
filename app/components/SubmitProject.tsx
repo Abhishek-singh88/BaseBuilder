@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import contractInfo from '../lib/contract-info.json';
+import { useToast } from './Toast';
 
 interface SubmitProjectProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface SubmitProjectProps {
 }
 
 export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProjectProps) {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -95,7 +97,7 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
     console.log('Transaction confirmed in block:', receipt.blockNumber);
     console.log('Gas used:', receipt.gasUsed.toString());
     
-    alert(`🎉 Project submitted successfully! Transaction: ${tx.hash}`);
+    showToast(`🎉 Project submitted successfully! Transaction: ${tx.hash}`, 'success');
     
     // Reset form and close
     setFormData({
@@ -138,7 +140,6 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
     setIsSubmitting(false);
   }
 };
-
 
   if (!isOpen) return null;
 

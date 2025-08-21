@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ethers } from 'ethers';
 import contractInfo from '../lib/contract-info.json';
 import StarRating from './StarRating';
+import { useToast } from './Toast';
 
 interface ReviewFormProps {
   projectId: string;
@@ -10,6 +11,7 @@ interface ReviewFormProps {
 }
 
 export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: ReviewFormProps) {
+  const { showToast } = useToast();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -53,7 +55,7 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
 
       await tx.wait();
       
-      alert('🎉 Review submitted successfully!');
+      showToast('🎉 Review submitted successfully!', 'success');
       setRating(0);
       setComment('');
       onReviewSubmitted();

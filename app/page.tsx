@@ -11,10 +11,11 @@ import { ethers } from 'ethers';
 import contractInfo from './lib/contract-info.json';
 import StarRating from './components/StarRating';
 import { Project } from './types';
+import { ToastProvider, useToast } from './components/Toast';
 
-
-export default function HomePage() {
+function HomePageContent() {
   const { context, isFrameReady, setFrameReady } = useMiniKit();
+  const { showToast } = useToast();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -255,11 +256,11 @@ export default function HomePage() {
       if (window.ethereum) {
         await window.ethereum.request({ method: 'eth_requestAccounts' });
       } else {
-        alert('Please install MetaMask or another Web3 wallet');
+        showToast('Please install MetaMask or another Web3 wallet', 'error');
       }
     } catch (error) {
       console.error('Failed to connect wallet:', error);
-      alert('Failed to connect wallet');
+      showToast('Failed to connect wallet', 'error');
     }
   };
 
@@ -271,7 +272,7 @@ export default function HomePage() {
 
       // Note: There's no standard way to programmatically disconnect from MetaMask
       // The user needs to disconnect manually from their wallet
-      alert('Please disconnect from your wallet extension (MetaMask, etc.) to fully disconnect.');
+      showToast('Please disconnect from your wallet extension (MetaMask, etc.) to fully disconnect.', 'info');
     } catch (error) {
       console.error('Error disconnecting wallet:', error);
     }
@@ -280,7 +281,7 @@ export default function HomePage() {
   const handleCopyAddress = () => {
     navigator.clipboard.writeText(connectedWallet);
     setShowWalletMenu(false);
-    alert('Address copied to clipboard!');
+    showToast('Address copied to clipboard!', 'success');
   };
 
   return (
@@ -551,5 +552,13 @@ export default function HomePage() {
         }}
       />
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <ToastProvider>
+      <HomePageContent />
+    </ToastProvider>
   );
 }
