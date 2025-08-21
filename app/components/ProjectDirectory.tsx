@@ -1,4 +1,5 @@
 import React from 'react';
+import StarRating from './StarRating'; // ADD THIS IMPORT
 
 interface Project {
   id: string;
@@ -88,10 +89,10 @@ export default function ProjectDirectory({ projects, onProjectClick }: ProjectDi
               {project.description}
             </p>
 
-            {/* Rating */}
+            {/* Rating - FIXED SECTION */}
             <div className="flex items-center space-x-3 mb-4">
-              <div className="flex items-center space-x-1">
-                <span className="text-yellow-500">⭐</span>
+              <div className="flex items-center space-x-2">
+                <StarRating rating={project.rating} readOnly={true} />
                 <span className="font-semibold">{project.rating}</span>
                 <span className="text-gray-500 text-sm">({project.reviewCount} reviews)</span>
               </div>
