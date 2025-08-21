@@ -112,23 +112,27 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
     onSuccess();
     onClose();
 
-  } catch (err: any) {
-    console.error('Submission error:', err);
-    
-    let errorMessage = 'Submission failed. Please try again.';
-    
-    if (err.code === 4001) {
-      errorMessage = 'Transaction cancelled by user.';
-    } else if (err.code === -32602) {
-      errorMessage = 'Invalid parameters. Check your input data.';
-    } else if (err.message?.includes('user rejected')) {
-      errorMessage = 'Transaction rejected by user.';
-    } else if (err.message?.includes('insufficient funds')) {
-      errorMessage = 'Insufficient ETH balance for transaction + gas fees.';
-    } else if (err.message) {
-      errorMessage = err.message;
+} catch (err: unknown) {
+  console.error("Submission error:", err);
+
+  let errorMessage = "Submission failed. Please try again.";
+
+  if (typeof err === "object" && err !== null) {
+    const errorObj = err as { code?: number; message?: string };
+
+    if (errorObj.code === 4001) {
+      errorMessage = "Transaction cancelled by user.";
+    } else if (errorObj.code === -32602) {
+      errorMessage = "Invalid parameters. Check your input data.";
+    } else if (errorObj.message?.includes("user rejected")) {
+      errorMessage = "Transaction rejected by user.";
+    } else if (errorObj.message?.includes("insufficient funds")) {
+      errorMessage =
+        "Insufficient ETH balance for transaction + gas fees.";
+    } else if (errorObj.message) {
+      errorMessage = errorObj.message;
     }
-    
+  }
     setError(errorMessage);
   } finally {
     setIsSubmitting(false);

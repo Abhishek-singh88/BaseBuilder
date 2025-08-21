@@ -50,7 +50,7 @@ export default function ReviewsList({ projectId, refreshTrigger }: ReviewsListPr
       submittedProjectId: ethers.BigNumber,
       reviewer: string,
       rating: number,
-      event: ethers.Event
+      //event: ethers.Event
     ) => {
       console.log('New review event:', {
         reviewId: reviewId.toNumber(),

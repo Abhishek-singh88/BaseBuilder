@@ -27,7 +27,7 @@ export const useContract = () => {
           const address = await web3Signer.getAddress();
           setUserAddress(address);
         } catch (error) {
-          console.log('Wallet not connected');
+          console.log('Wallet not connected',error);
         }
       }
     };

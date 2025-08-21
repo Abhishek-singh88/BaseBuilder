@@ -60,23 +60,32 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
       
       if (onClose) onClose();
 
-    } catch (err: any) {
-      console.error('Review submission failed:', err);
-      
-      if (err.reason?.includes('Already reviewed')) {
-        setError('❌ You have already reviewed this project');
-      } else if (err.reason?.includes('Cannot review own project')) {
-        setError('❌ You cannot review your own project');
-      } else if (err.reason?.includes('Comment too short')) {
-        setError('❌ Review comment must be at least 10 characters');
-      } else if (err.reason?.includes('insufficient funds')) {
-        setError('❌ Insufficient ETH balance for gas fees');
-      } else if (err.reason) {
-        setError(`❌ ${err.reason}`);
-      } else {
-        setError('❌ Failed to submit review. Please try again.');
-      }
-    } finally {
+      } catch (err: unknown) {
+  console.error("Review submission failed:", err);
+
+  // Narrow the type
+  if (typeof err === "object" && err !== null && "reason" in err) {
+    const reason = (err as { reason?: string }).reason;
+
+    if (reason?.includes("Already reviewed")) {
+      setError("❌ You have already reviewed this project");
+    } else if (reason?.includes("Cannot review own project")) {
+      setError("❌ You cannot review your own project");
+    } else if (reason?.includes("Comment too short")) {
+      setError("❌ Review comment must be at least 10 characters");
+    } else if (reason?.includes("insufficient funds")) {
+      setError("❌ Insufficient ETH balance for gas fees");
+    } else if (reason) {
+      setError(`❌ ${reason}`);
+    } else {
+      setError("❌ Failed to submit review. Please try again.");
+    }
+  } else {
+    setError("❌ Failed to submit review. Please try again.");
+  }
+}
+
+      finally {
       setIsSubmitting(false);
     }
   };
