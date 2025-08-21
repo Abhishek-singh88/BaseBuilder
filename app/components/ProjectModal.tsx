@@ -105,12 +105,11 @@ export default function ProjectModal({ project, onClose }: ProjectModalProps) {
               {/* Rating and Actions */}
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div className="flex items-center space-x-4">
-                  {/* Updated Star Rating Display */}
+                  {/* FIXED: Correct prop name */}
                   <div className="flex items-center space-x-3">
                     <StarRating 
                       rating={project.rating} 
-                      readonly={true} 
-                      size="md" 
+                      readOnly={true}  
                     />
                     <div className="flex flex-col">
                       <span className="text-2xl font-bold text-gray-900">
