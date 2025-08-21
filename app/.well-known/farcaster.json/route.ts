@@ -12,7 +12,8 @@ function withValidProperties(
 }
 
 export async function GET() {
-  const URL = process.env.NEXT_PUBLIC_URL;
+  // Hardcode your Vercel URL to match what you're submitting to Base Build
+  const URL = "https://basebuilder.vercel.app";
 
   return Response.json({
     accountAssociation: {
@@ -21,20 +22,20 @@ export async function GET() {
       signature: "MHg3ZTM5YjQ3ZjkzNmI5ZjI3MDk4YTlhYWI2NDVhYzM2YzNjMmRkODUzYjNiYmQ2Mzc5M2U5ZjVhN2U4OGY0M2MyNzEwN2Q5MTc4YTg1Y2E0ZDE2NmVmZWYzY2I3YzY3NTA1Y2IzZDMzZjlkOGEzZGExZGFkMWNhMzMwOWQzOGE1YjFj"
     },
     frame: {
-      version: "1",
-      name: process.env.NEXT_PUBLIC_ONCHAINKIT_PROJECT_NAME || "BaseBuilder",
-      subtitle: process.env.NEXT_PUBLIC_APP_SUBTITLE || "Discover the Best Base Apps",
-      description: process.env.NEXT_PUBLIC_APP_DESCRIPTION || "The Product Hunt for Base - Discover, review, and showcase the best applications in the Base ecosystem",
-      iconUrl: process.env.NEXT_PUBLIC_APP_ICON || "https://raw.githubusercontent.com/coinbase/onchainkit/main/site/docs/public/logo/base-logo-blue.svg",
-      splashImageUrl: process.env.NEXT_PUBLIC_APP_SPLASH_IMAGE || "https://raw.githubusercontent.com/coinbase/onchainkit/main/site/docs/public/logo/base-logo-blue.svg",
-      splashBackgroundColor: process.env.NEXT_PUBLIC_SPLASH_BACKGROUND_COLOR || "#0052FF",
-      homeUrl: URL,
-      webhookUrl: `${URL}/api/webhook`,
-      primaryCategory: process.env.NEXT_PUBLIC_APP_PRIMARY_CATEGORY || "productivity",
-      tagline: process.env.NEXT_PUBLIC_APP_TAGLINE || "The Product Hunt for Base",
-      ogTitle: process.env.NEXT_PUBLIC_APP_OG_TITLE || "BaseBuilder",
-      ogDescription: process.env.NEXT_PUBLIC_APP_OG_DESCRIPTION || "Discover the Best Base Apps",
-      ogImageUrl: process.env.NEXT_PUBLIC_APP_OG_IMAGE || "https://raw.githubusercontent.com/coinbase/onchainkit/main/site/docs/public/logo/base-logo-blue.svg"
+      version: "1", 
+      name: "BaseBuilder",
+      subtitle: "Discover the Best Base Apps",
+      description: "The Product Hunt for Base - Discover, review, and showcase the best applications in the Base ecosystem",
+      iconUrl: "https://raw.githubusercontent.com/coinbase/onchainkit/main/site/docs/public/logo/base-logo-blue.svg",
+      splashImageUrl: "https://raw.githubusercontent.com/coinbase/onchainkit/main/site/docs/public/logo/base-logo-blue.svg",
+      splashBackgroundColor: "#0052FF",
+      homeUrl: "https://basebuilder.vercel.app",
+      webhookUrl: "https://basebuilder.vercel.app/api/webhook",
+      primaryCategory: "productivity",
+      tagline: "The Product Hunt for Base",
+      ogTitle: "BaseBuilder",
+      ogDescription: "Discover the Best Base Apps",
+      ogImageUrl: "https://raw.githubusercontent.com/coinbase/onchainkit/main/site/docs/public/logo/base-logo-blue.svg"
     },
     baseBuilder: {
       allowedAddresses: ["0x6Cf4cfcb7064d9dE430508b58d772a01d888b0c73da"]
