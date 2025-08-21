@@ -12,13 +12,13 @@ function withValidProperties(
 }
 
 export async function GET() {
-  // Hardcode your Vercel URL to match what you're submitting to Base Build
   const URL = "https://basebuilder.vercel.app";
 
   return Response.json({
     accountAssociation: {
       header: "eyJmaWQiOjczNDEsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhEMjc4ZkZCNjVBMDYyZDA5OTTRCMUI5OEIzYmQ5M0Q5NjVGMUM2ZDBBIn0",
-      payload: "eyJkb21haW4iOiJmcmFtZS1leGFtcGxlLXZlcmNlbC1hcHAuanVzdGluLWtuLnZlcmNlbC5hcHAifQ",
+      // Updated payload with your actual domain
+      payload: "eyJkb21haW4iOiJiYXNlYnVpbGRlci52ZXJjZWwuYXBwIn0",
       signature: "MHg3ZTM5YjQ3ZjkzNmI5ZjI3MDk4YTlhYWI2NDVhYzM2YzNjMmRkODUzYjNiYmQ2Mzc5M2U5ZjVhN2U4OGY0M2MyNzEwN2Q5MTc4YTg1Y2E0ZDE2NmVmZWYzY2I3YzY3NTA1Y2IzZDMzZjlkOGEzZGExZGFkMWNhMzMwOWQzOGE1YjFj"
     },
     frame: {
