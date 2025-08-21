@@ -41,7 +41,7 @@ export async function GET() {
     }),
     // Add this baseBuilder section
     baseBuilder: {
-      allowedAddresses: [process.env.BASE_BUILDER_ALLOWED_ADDRESS]
+      allowedAddresses: ["0x6Cf41cfeb7C64E950f43B0850a77a058BDaC73da"]
     }
   });
 }
