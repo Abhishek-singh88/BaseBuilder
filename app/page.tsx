@@ -10,23 +10,8 @@ import SubmitProject from './components/SubmitProject';
 import { ethers } from 'ethers';
 import contractInfo from './lib/contract-info.json';
 import StarRating from './components/StarRating';
+import { Project } from './types';
 
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  rating: number;
-  reviewCount: number;
-  image: string;
-  url: string;
-  tags: string[];
-  builder: string;
-  builderAddress: string;
-  launchDate: string;
-  featured: boolean;
-  isActive: boolean;
-}
 
 export default function HomePage() {
   const { context, isFrameReady, setFrameReady } = useMiniKit();

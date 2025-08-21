@@ -1,20 +1,6 @@
 import React from 'react';
-import StarRating from './StarRating'; // ADD THIS IMPORT
-
-interface Project {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  rating: number;
-  reviewCount: number;
-  image: string;
-  url: string;
-  tags: string[];
-  builder: string;
-  launchDate: string;
-  featured: boolean;
-}
+import StarRating from './StarRating'; 
+import { Project } from '../types/index';
 
 interface ProjectDirectoryProps {
   projects: Project[];
