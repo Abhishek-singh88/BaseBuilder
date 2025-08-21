@@ -167,7 +167,7 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
                   required
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="text-black w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Awesome Base App"
                 />
               </div>
@@ -182,7 +182,7 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
                   rows={3}
                   value={formData.description}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="text-black w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Describe what your project does and why it's amazing..."
                 />
               </div>
@@ -196,7 +196,7 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
                     name="category"
                     value={formData.category}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="text-black w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     {categories.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -214,7 +214,7 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
                     required
                     value={formData.url}
                     onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="text-black w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     placeholder="https://yourapp.com"
                   />
                 </div>
@@ -229,7 +229,7 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
                   name="imageUrl"
                   value={formData.imageUrl}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="text-black w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="https://yourapp.com/logo.png"
                 />
               </div>
@@ -251,7 +251,7 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
                   required
                   value={formData.builderName}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="text-black w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="John Doe"
                 />
               </div>
@@ -265,7 +265,7 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
                   rows={2}
                   value={formData.builderBio}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="text-black w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Brief description about yourself..."
                 />
               </div>
@@ -279,7 +279,7 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
                   name="socialHandle"
                   value={formData.socialHandle}
                   onChange={handleChange}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="text-black w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="@yourusername"
                 />
               </div>

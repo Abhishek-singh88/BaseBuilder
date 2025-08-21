@@ -9,6 +9,7 @@ import CategoryFilter from './components/CategoryFilter';
 import SubmitProject from './components/SubmitProject';
 import { ethers } from 'ethers';
 import contractInfo from './lib/contract-info.json';
+import StarRating from './components/StarRating';
 
 interface Project {
   id: string;
@@ -36,7 +37,7 @@ export default function HomePage() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshToggle, setRefreshToggle] = useState(false);
-  
+
   // Wallet connection states
   const [connectedWallet, setConnectedWallet] = useState<string>('');
   const [showWalletMenu, setShowWalletMenu] = useState(false);
@@ -106,11 +107,11 @@ export default function HomePage() {
     async function fetchProjectsFromBlockchain() {
       setIsLoading(true);
       console.log('Starting to fetch projects from blockchain...');
-      
+
       try {
         // Create provider for reading data (no wallet needed for reading)
         const provider = new ethers.providers.JsonRpcProvider('https://sepolia.base.org');
-        
+
         // Create contract instance
         const contract = new ethers.Contract(
           contractInfo.contractAddress,
@@ -174,7 +175,7 @@ export default function HomePage() {
           try {
             console.log(`Fetching project ${projectId}...`);
             const [project, averageRating] = await contract.getProject(projectId);
-            
+
             console.log('Project data:', {
               id: project.id.toString(),
               name: project.name,
@@ -194,7 +195,7 @@ export default function HomePage() {
               };
 
               // Fixed rating scaling - ensure it's between 0 and 5
-              const scaledRating = averageRating > 0 ? 
+              const scaledRating = averageRating > 0 ?
                 Math.min(5, Math.max(0, averageRating / 100)) : 0;
 
               projectsData.push({
@@ -224,7 +225,7 @@ export default function HomePage() {
 
       } catch (error) {
         console.error('Error fetching projects from blockchain:', error);
-        
+
         // Fallback to mock data if blockchain fetch fails
         console.log('Falling back to demo data due to error');
         const mockProjects: Project[] = [
@@ -282,7 +283,7 @@ export default function HomePage() {
       // Clear the connected wallet state
       setConnectedWallet('');
       setShowWalletMenu(false);
-      
+
       // Note: There's no standard way to programmatically disconnect from MetaMask
       // The user needs to disconnect manually from their wallet
       alert('Please disconnect from your wallet extension (MetaMask, etc.) to fully disconnect.');
@@ -303,7 +304,11 @@ export default function HomePage() {
       <header className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="text-3xl">🔍</div>
+            <img
+              src="/logo.png"
+              alt="BaseBuilder Logo"
+              className="h-20 w-20 object-contain"
+            />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">BaseBuilder</h1>
               <p className="text-sm text-gray-600">Discover the Best Base Apps</p>
@@ -312,7 +317,7 @@ export default function HomePage() {
               SHOWCASE
             </span>
           </div>
-          
+
           {/* Enhanced wallet connection display */}
           <div className="flex items-center space-x-4">
             {connectedWallet ? (
@@ -332,13 +337,13 @@ export default function HomePage() {
                       </span>
                     </div>
                   </div>
-                  
+
                   {/* Dropdown Arrow */}
                   <div className="text-gray-400">
-                    <svg 
-                      className={`w-4 h-4 transition-transform ${showWalletMenu ? 'rotate-180' : ''}`} 
-                      fill="none" 
-                      stroke="currentColor" 
+                    <svg
+                      className={`w-4 h-4 transition-transform ${showWalletMenu ? 'rotate-180' : ''}`}
+                      fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -360,7 +365,7 @@ export default function HomePage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="p-2">
                       <button
                         onClick={handleCopyAddress}
@@ -369,7 +374,7 @@ export default function HomePage() {
                         <span className="text-gray-400">📋</span>
                         <span className="text-gray-700">Copy Address</span>
                       </button>
-                      
+
                       <button
                         onClick={handleDisconnectWallet}
                         className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-red-50 rounded-lg transition-colors text-red-600"
@@ -380,7 +385,7 @@ export default function HomePage() {
                     </div>
                   </div>
                 )}
-                
+
                 {/* Farcaster User (if available) */}
                 {context?.user && (
                   <div className="flex items-center space-x-2 ml-4">
@@ -479,12 +484,13 @@ export default function HomePage() {
                       <h4 className="text-xl font-bold text-gray-900">{project.name}</h4>
                       <p className="text-sm text-gray-600">{project.category}</p>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <span className="text-yellow-500">⭐</span>
+                    <div className="flex items-center space-x-2">
+                      <StarRating rating={project.rating} readOnly={true} />
                       <span className="font-semibold">{project.rating}</span>
                       <span className="text-gray-500 text-sm">({project.reviewCount})</span>
                     </div>
                   </div>
+
                   <p className="text-gray-700 mb-3">{project.description}</p>
                   <div className="flex items-center justify-between">
                     <div className="flex flex-wrap gap-1">

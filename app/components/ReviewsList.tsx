@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import contractInfo from '../lib/contract-info.json';
+import StarRating from './StarRating'; // ADD THIS IMPORT
 
 interface Review {
   id: number;
@@ -41,39 +42,38 @@ export default function ReviewsList({ projectId, refreshTrigger }: ReviewsListPr
   }, []);
 
   // Listen for new ReviewSubmitted events
-useEffect(() => {
-  if (!contract) return;
+  useEffect(() => {
+    if (!contract) return;
 
-  const handleReviewSubmitted = (
-    reviewId: ethers.BigNumber,
-    submittedProjectId: ethers.BigNumber,
-    reviewer: string,
-    rating: number,
-    event: ethers.Event
-  ) => {
-    console.log('New review event:', {
-      reviewId: reviewId.toNumber(),
-      projectId: submittedProjectId.toNumber(),
-      reviewer,
-      rating
-    });
-    
-    // Only refresh if this review is for the current project
-    if (submittedProjectId.toNumber() === parseInt(projectId)) {
-      console.log('✅ New review for current project - refreshing!');
-      setTimeout(() => fetchReviews(), 2000); // Small delay to ensure blockchain is updated
-    }
-  };
+    const handleReviewSubmitted = (
+      reviewId: ethers.BigNumber,
+      submittedProjectId: ethers.BigNumber,
+      reviewer: string,
+      rating: number,
+      event: ethers.Event
+    ) => {
+      console.log('New review event:', {
+        reviewId: reviewId.toNumber(),
+        projectId: submittedProjectId.toNumber(),
+        reviewer,
+        rating
+      });
+      
+      // Only refresh if this review is for the current project
+      if (submittedProjectId.toNumber() === parseInt(projectId)) {
+        console.log('✅ New review for current project - refreshing!');
+        setTimeout(() => fetchReviews(), 2000); // Small delay to ensure blockchain is updated
+      }
+    };
 
-  // Listen to ReviewSubmitted events
-  contract.on('ReviewSubmitted', handleReviewSubmitted);
+    // Listen to ReviewSubmitted events
+    contract.on('ReviewSubmitted', handleReviewSubmitted);
 
-  // Cleanup listener on unmount
-  return () => {
-    contract.off('ReviewSubmitted', handleReviewSubmitted);
-  };
-}, [contract, projectId]);
-
+    // Cleanup listener on unmount
+    return () => {
+      contract.off('ReviewSubmitted', handleReviewSubmitted);
+    };
+  }, [contract, projectId]);
 
   // Fetch reviews function
   const fetchReviews = async () => {
@@ -85,7 +85,6 @@ useEffect(() => {
     try {
       // Get all review IDs for this project
       const reviewIds = await contract.getProjectReviews(parseInt(projectId));
-      //console.log('Found review IDs:', reviewIds.map(id => id.toNumber()));
       
       const reviewsData: Review[] = [];
 
@@ -94,9 +93,12 @@ useEffect(() => {
           const review = await contract.reviews(reviewIds[i]);
           
           if (review.isActive) {
+            // Add debug logging to see what rating we're getting
+            console.log('Review rating from blockchain:', review.rating);
+            
             reviewsData.push({
               id: review.id.toNumber(),
-              rating: review.rating,
+              rating: review.rating, // This should be the actual rating (like 2)
               comment: review.comment,
               reviewer: review.reviewer,
               timestamp: review.timestamp.toNumber(),
@@ -110,7 +112,7 @@ useEffect(() => {
 
       // Sort by newest first
       reviewsData.sort((a, b) => b.timestamp - a.timestamp);
-      console.log('Fetched reviews:', reviewsData.length);
+      console.log('Fetched reviews:', reviewsData);
       setReviews(reviewsData);
 
     } catch (error) {
@@ -193,16 +195,14 @@ useEffect(() => {
           {/* Review Header */}
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
-              <div className="flex items-center">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <span
-                    key={star}
-                    className={star <= review.rating ? 'text-yellow-400' : 'text-gray-300'}
-                  >
-                    ⭐
-                  </span>
-                ))}
-              </div>
+              {/* FIXED: Use StarRating component instead of emoji stars */}
+              <StarRating 
+                rating={review.rating} 
+                readOnly={true} 
+              />
+              <span className="text-sm font-medium text-gray-900">
+                {review.rating}/5
+              </span>
               <span className="text-sm text-gray-600">
                 by {review.reviewer.slice(0, 6)}...{review.reviewer.slice(-4)}
               </span>
