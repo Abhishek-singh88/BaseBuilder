@@ -18,7 +18,7 @@ interface Project {
 
 interface ProjectDirectoryProps {
   projects: Project[];
-  onProjectClick: (project: Project) => void;
+   onProjectClick: (project: Project | null) => void; 
 }
 
 export default function ProjectDirectory({ projects, onProjectClick }: ProjectDirectoryProps) {
