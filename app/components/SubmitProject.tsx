@@ -54,8 +54,8 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
     const network = await provider.getNetwork();
     console.log('Connected to network:', network.chainId);
     
-    if (network.chainId !== 84532) {
-      throw new Error('Please switch to Base Sepolia network (Chain ID: 84532)');
+    if (network.chainId !== 8453) {
+      throw new Error('Please switch to Base mainnet network (Chain ID: 8453)');
     }
 
     const signer = provider.getSigner();

@@ -57,7 +57,7 @@ contract BaseBuilderShowcase is Ownable, ReentrancyGuard {
     
     // Constants
     uint256 public constant SUBMISSION_FEE = 0.001 ether; // Small fee to prevent spam
-    uint256 public constant REVIEW_REWARD = 0.0001 ether; // Reward for quality reviews
+    uint256 public constant REVIEW_REWARD = 0.00001 ether; // Reward for quality reviews
     
     // Events
     event ProjectSubmitted(uint256 indexed projectId, address indexed builder, string name);

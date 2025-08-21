@@ -92,11 +92,11 @@ function HomePageContent() {
   useEffect(() => {
     async function fetchProjectsFromBlockchain() {
       setIsLoading(true);
-      console.log('Starting to fetch projects from blockchain...');
+      console.log('🔍 Starting to fetch projects from blockchain...');
 
       try {
         // Create provider for reading data (no wallet needed for reading)
-        const provider = new ethers.providers.JsonRpcProvider('https://sepolia.base.org');
+        const provider = new ethers.providers.JsonRpcProvider('https://mainnet.base.org');
 
         // Create contract instance
         const contract = new ethers.Contract(
@@ -105,52 +105,19 @@ function HomePageContent() {
           provider
         );
 
-        console.log('Connected to contract:', contractInfo.contractAddress);
+        console.log('📋 Connected to contract:', contractInfo.contractAddress);
+        console.log('🌐 Network: Base Mainnet');
 
         // Get all project IDs
         const projectIds = await contract.getAllProjects();
-        console.log('Found project IDs:', projectIds.length, projectIds);
+        console.log('📊 Found project IDs:', projectIds.length, projectIds);
 
         const projectsData: Project[] = [];
 
-        // If no projects exist, show mock data for demo
+        // ✅ FIXED: If no projects exist, just set empty array (no mock data)
         if (projectIds.length === 0) {
-          console.log('No projects found in contract, showing demo data');
-          const mockProjects: Project[] = [
-            {
-              id: 'demo-1',
-              name: 'Aerodrome Finance',
-              description: 'Next-generation AMM designed for the Base ecosystem',
-              category: 'DeFi',
-              rating: 4.8,
-              reviewCount: 234,
-              image: '/api/placeholder/400/300',
-              url: 'https://aerodrome.finance',
-              tags: ['AMM', 'Trading', 'Liquidity'],
-              builder: 'Aerodrome Team',
-              builderAddress: '0x0000000000000000000000000000000000000000',
-              launchDate: '2024-02-15',
-              featured: true,
-              isActive: true
-            },
-            {
-              id: 'demo-2',
-              name: 'Friend.tech',
-              description: 'Social trading platform built on Base',
-              category: 'Social',
-              rating: 4.2,
-              reviewCount: 1567,
-              image: '/api/placeholder/400/300',
-              url: 'https://friend.tech',
-              tags: ['Social', 'Trading', 'Crypto'],
-              builder: 'Friend.tech Team',
-              builderAddress: '0x0000000000000000000000000000000000000000',
-              launchDate: '2024-08-10',
-              featured: true,
-              isActive: true
-            }
-          ];
-          setProjects(mockProjects);
+          console.log('✅ No projects found in contract - showing empty state');
+          setProjects([]); // Empty array, no mock data
           setIsLoading(false);
           return;
         }
@@ -159,10 +126,10 @@ function HomePageContent() {
         for (let i = 0; i < projectIds.length; i++) {
           const projectId = projectIds[i];
           try {
-            console.log(`Fetching project ${projectId}...`);
+            console.log(`📦 Fetching project ${projectId}...`);
             const [project, averageRating] = await contract.getProject(projectId);
 
-            console.log('Project data:', {
+            console.log('📋 Project data:', {
               id: project.id.toString(),
               name: project.name,
               isActive: project.isActive,
@@ -202,44 +169,26 @@ function HomePageContent() {
               });
             }
           } catch (error) {
-            console.error(`Error fetching project ${projectId}:`, error);
+            console.error(`❌ Error fetching project ${projectId}:`, error);
           }
         }
 
-        console.log('Successfully fetched projects:', projectsData.length);
+        console.log('✅ Successfully fetched projects:', projectsData.length);
         setProjects(projectsData);
 
       } catch (error) {
-        console.error('Error fetching projects from blockchain:', error);
-
-        // Fallback to mock data if blockchain fetch fails
-        console.log('Falling back to demo data due to error');
-        const mockProjects: Project[] = [
-          {
-            id: 'demo-1',
-            name: 'Aerodrome Finance',
-            description: 'Next-generation AMM designed for the Base ecosystem',
-            category: 'DeFi',
-            rating: 4.8,
-            reviewCount: 234,
-            image: '/api/placeholder/400/300',
-            url: 'https://aerodrome.finance',
-            tags: ['AMM', 'Trading', 'Liquidity'],
-            builder: 'Aerodrome Team',
-            builderAddress: '0x0000000000000000000000000000000000000000',
-            launchDate: '2024-02-15',
-            featured: true,
-            isActive: true
-          }
-        ];
-        setProjects(mockProjects);
+        console.error('❌ Error fetching projects from blockchain:', error);
+        
+        
+        console.log('⚠️ Blockchain fetch failed - showing empty state');
+        setProjects([]); 
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchProjectsFromBlockchain();
-  }, [refreshToggle]); // Refetch when refreshToggle changes
+  }, [refreshToggle]); 
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -270,8 +219,6 @@ function HomePageContent() {
       setConnectedWallet('');
       setShowWalletMenu(false);
 
-      // Note: There's no standard way to programmatically disconnect from MetaMask
-      // The user needs to disconnect manually from their wallet
       showToast('Please disconnect from your wallet extension (MetaMask, etc.) to fully disconnect.', 'info');
     } catch (error) {
       console.error('Error disconnecting wallet:', error);
@@ -439,18 +386,29 @@ function HomePageContent() {
           </div>
         )}
 
-        {/* Empty State */}
+        {/* ✅ IMPROVED: Better Empty State */}
         {!isLoading && projects.length === 0 && (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">🚀</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Projects Yet</h3>
-            <p className="text-gray-600 mb-4">Be the first to submit a project to the Base ecosystem!</p>
-            <button
-              onClick={() => setShowSubmitModal(true)}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg"
-            >
-              Submit First Project
-            </button>
+          <div className="text-center py-16">
+            <div className="text-8xl mb-6">🚀</div>
+            <h3 className="text-3xl font-bold text-gray-900 mb-4">Ready for Launch!</h3>
+            <p className="text-xl text-gray-600 mb-6">
+              BaseBuilder is live on Base Mainnet and ready for projects.
+            </p>
+            <p className="text-gray-500 mb-8">
+              Be the first to showcase your Base application and build the ecosystem directory.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <button
+                onClick={() => setShowSubmitModal(true)}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-lg font-semibold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+              >
+                🚀 Submit First Project
+              </button>
+              <div className="text-sm text-gray-500 flex items-center justify-center">
+                <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                Connected to Base Mainnet
+              </div>
+            </div>
           </div>
         )}
 
@@ -495,7 +453,7 @@ function HomePageContent() {
         )}
 
         {/* Project Directory */}
-        {!isLoading && (
+        {!isLoading && projects.length > 0 && (
           <ProjectDirectory
             projects={filteredProjects}
             onProjectClick={setSelectedProject}

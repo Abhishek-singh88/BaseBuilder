@@ -55,39 +55,37 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
 
       await tx.wait();
       
-      showToast('🎉 Review submitted successfully!', 'success');
+      showToast('🎉 Review submitted successfully! You earned 0.00001 ETH! 💰', 'success');
       setRating(0);
       setComment('');
       onReviewSubmitted();
       
       if (onClose) onClose();
 
-      } catch (err: unknown) {
-  console.error("Review submission failed:", err);
+    } catch (err: unknown) {
+      console.error("Review submission failed:", err);
 
-  // Narrow the type
-  if (typeof err === "object" && err !== null && "reason" in err) {
-    const reason = (err as { reason?: string }).reason;
+      // Narrow the type
+      if (typeof err === "object" && err !== null && "reason" in err) {
+        const reason = (err as { reason?: string }).reason;
 
-    if (reason?.includes("Already reviewed")) {
-      setError("❌ You have already reviewed this project");
-    } else if (reason?.includes("Cannot review own project")) {
-      setError("❌ You cannot review your own project");
-    } else if (reason?.includes("Comment too short")) {
-      setError("❌ Review comment must be at least 10 characters");
-    } else if (reason?.includes("insufficient funds")) {
-      setError("❌ Insufficient ETH balance for gas fees");
-    } else if (reason) {
-      setError(`❌ ${reason}`);
-    } else {
-      setError("❌ Failed to submit review. Please try again.");
-    }
-  } else {
-    setError("❌ Failed to submit review. Please try again.");
-  }
-}
-
-      finally {
+        if (reason?.includes("Already reviewed")) {
+          setError("❌ You have already reviewed this project");
+        } else if (reason?.includes("Cannot review own project")) {
+          setError("❌ You cannot review your own project");
+        } else if (reason?.includes("Comment too short")) {
+          setError("❌ Review comment must be at least 10 characters");
+        } else if (reason?.includes("insufficient funds")) {
+          setError("❌ Insufficient ETH balance for gas fees");
+        } else if (reason) {
+          setError(`❌ ${reason}`);
+        } else {
+          setError("❌ Failed to submit review. Please try again.");
+        }
+      } else {
+        setError("❌ Failed to submit review. Please try again.");
+      }
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -106,6 +104,16 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
             ×
           </button>
         )}
+      </div>
+
+      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+        <p className="text-green-800 text-sm flex items-center">
+          <span className="mr-2">💰</span>
+          <strong>Earn 0.00001 ETH </strong> for submitting a quality review!
+        </p>
+        <p className="text-green-700 text-xs mt-1">
+          Reviews are rewarded automatically from the contract balance
+        </p>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -136,14 +144,14 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
         {/* Comment */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Your Review *
+            Your Review * <span className="text-green-600 text-xs">(Get paid for quality reviews!)</span>
           </label>
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={4}
             className="text-black w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-            placeholder="Share your experience with this project... What did you like? Any suggestions for improvement?"
+            placeholder="Share your experience with this project... What did you like? Any suggestions for improvement? (Detailed reviews help the community!)"
             required
           />
           <p className={`text-xs mt-1 ${
@@ -161,10 +169,9 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
           </div>
         )}
 
-        {/* Review Guidelines */}
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-blue-800 text-xs">
-            💡 <strong>Tip:</strong> Great reviews mention specific features, usability, performance, and overall experience.
+            💡 <strong>Tip:</strong> Great reviews mention specific features, usability, performance, and overall experience. Quality reviews earn you ETH rewards!
           </p>
         </div>
 
@@ -172,7 +179,7 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
         <button
           type="submit"
           disabled={isSubmitting || rating === 0 || comment.trim().length < 10}
-          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white py-3 px-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:transform-none"
+          className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white py-3 px-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:transform-none"
         >
           {isSubmitting ? (
             <span className="flex items-center justify-center">
@@ -180,10 +187,17 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
               Submitting Review...
             </span>
           ) : (
-            `Submit ${rating > 0 ? `${rating}-Star` : ''} Review`
+            <span className="flex items-center justify-center">
+              <span className="mr-2">💰</span>
+              {`Submit ${rating > 0 ? `${rating}-Star` : ''} Review & Earn ETH`}
+            </span>
           )}
         </button>
       </form>
+
+      <p className="text-xs text-gray-500 mt-3 text-center">
+        Rewards are paid automatically if contract has sufficient balance
+      </p>
     </div>
   );
 }

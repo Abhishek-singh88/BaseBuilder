@@ -26,7 +26,7 @@ export default function ReviewsList({ projectId, refreshTrigger }: ReviewsListPr
   useEffect(() => {
     const initContract = async () => {
       try {
-        const provider = new ethers.providers.JsonRpcProvider('https://sepolia.base.org');
+        const provider = new ethers.providers.JsonRpcProvider('https://mainnet.base.org');
         const contractInstance = new ethers.Contract(
           contractInfo.contractAddress,
           contractInfo.abi,
