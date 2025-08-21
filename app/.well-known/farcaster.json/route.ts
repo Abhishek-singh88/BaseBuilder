@@ -38,7 +38,7 @@ export async function GET() {
       ogImageUrl: "https://raw.githubusercontent.com/coinbase/onchainkit/main/site/docs/public/logo/base-logo-blue.svg"
     },
     baseBuilder: {
-      allowedAddresses: ["0x6Cf4cfcb7064d9dE430508b58d772a01d888b0c73da"]
+      allowedAddresses: ["0x6Cf41cfeb7C64E950f43B0850a77a058BDaC73da"]
     }
   });
 }
