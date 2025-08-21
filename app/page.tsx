@@ -32,43 +32,31 @@ function HomePageContent() {
     if (!isFrameReady) setFrameReady();
   }, [isFrameReady, setFrameReady]);
 
-  // Check for connected wallet
-  useEffect(() => {
-    const checkWalletConnection = async () => {
-      if (typeof window !== 'undefined' && window.ethereum) {
-        try {
-          const provider = new ethers.providers.Web3Provider(window.ethereum);
-          const accounts = await provider.listAccounts();
-          if (accounts.length > 0) {
-            setConnectedWallet(accounts[0]);
-          }
-        } catch (error) {
-          console.log('No wallet connected:', error);
-        }
+ // Modified wallet connection check - only listen for changes, don't auto-connect
+useEffect(() => {
+  // Only listen for account changes, don't check initially
+  if (window.ethereum) {
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length > 0) {
+        setConnectedWallet(accounts[0]);
+      } else {
+        setConnectedWallet('');
+        setShowWalletMenu(false);
       }
     };
 
-    checkWalletConnection();
-
     // Listen for account changes
-    if (window.ethereum) {
-      window.ethereum.on('accountsChanged', (accounts: string[]) => {
-        if (accounts.length > 0) {
-          setConnectedWallet(accounts[0]);
-        } else {
-          setConnectedWallet('');
-          setShowWalletMenu(false);
-        }
-      });
-    }
+    window.ethereum.on('accountsChanged', handleAccountsChanged);
 
     // Cleanup
     return () => {
       if (window.ethereum) {
-        window.ethereum.removeAllListeners('accountsChanged');
+        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
       }
     };
-  }, []);
+  }
+}, []);
+
 
   // Close dropdown when clicking outside
   useEffect(() => {
