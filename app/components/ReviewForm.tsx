@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ethers } from 'ethers';
+import React, { useState, useEffect } from 'react';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
 import contractInfo from '../lib/contract-info.json';
 import StarRating from './StarRating';
 import { useToast } from './Toast';
@@ -12,10 +12,63 @@ interface ReviewFormProps {
 
 export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: ReviewFormProps) {
   const { showToast } = useToast();
+  const { address, isConnected } = useAccount();
+  
+  // Wagmi hooks for contract interaction
+  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({
+    hash,
+  });
+  
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Handle transaction success
+  useEffect(() => {
+    if (isSuccess && hash) {
+      console.log('Review submitted successfully:', hash);
+      showToast('🎉 Review submitted successfully! You earned 0.00001 ETH! 💰', 'success');
+      setRating(0);
+      setComment('');
+      onReviewSubmitted();
+      
+      if (onClose) onClose();
+    }
+  }, [isSuccess, hash, showToast, onReviewSubmitted, onClose]);
+
+  // Handle errors
+  useEffect(() => {
+    if (writeError || receiptError) {
+      const err = writeError || receiptError;
+      console.error("Review submission failed:", err);
+
+      let errorMessage = "❌ Failed to submit review. Please try again.";
+
+      if (typeof err === "object" && err !== null) {
+        const errorObj = err as { message?: string; cause?: { reason?: string }; reason?: string };
+
+        // Check for specific contract errors
+        const reason = errorObj.cause?.reason || errorObj.reason || errorObj.message;
+
+        if (reason?.includes("Already reviewed")) {
+          errorMessage = "❌ You have already reviewed this project";
+        } else if (reason?.includes("Cannot review own project")) {
+          errorMessage = "❌ You cannot review your own project";
+        } else if (reason?.includes("Comment too short")) {
+          errorMessage = "❌ Review comment must be at least 10 characters";
+        } else if (reason?.includes("insufficient funds")) {
+          errorMessage = "❌ Insufficient ETH balance for gas fees";
+        } else if (reason?.includes("user rejected") || reason?.includes("User rejected")) {
+          errorMessage = "❌ Transaction cancelled by user";
+        } else if (reason) {
+          errorMessage = `❌ ${reason}`;
+        }
+      }
+
+      setError(errorMessage);
+    }
+  }, [writeError, receiptError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,70 +83,58 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
       return;
     }
 
-    setIsSubmitting(true);
+    if (!isConnected || !address) {
+      setError('Please connect your wallet first');
+      return;
+    }
+
     setError('');
 
     try {
-      if (!window.ethereum) throw new Error('Wallet not found');
+      console.log('Submitting review for project:', projectId);
       
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send('eth_requestAccounts', []);
-      const signer = provider.getSigner();
-
-      const contract = new ethers.Contract(
-        contractInfo.contractAddress,
-        contractInfo.abi,
-        signer
-      );
-
-      const tx = await contract.submitReview(
-        parseInt(projectId),
-        rating,
-        comment,
-        { gasLimit: 400000 }
-      );
-
-      await tx.wait();
-      
-      showToast('🎉 Review submitted successfully! You earned 0.00001 ETH! 💰', 'success');
-      setRating(0);
-      setComment('');
-      onReviewSubmitted();
-      
-      if (onClose) onClose();
+      writeContract({
+        address: contractInfo.contractAddress as `0x${string}`,
+        abi: contractInfo.abi,
+        functionName: 'submitReview',
+        args: [
+          parseInt(projectId),
+          rating,
+          comment,
+        ],
+        gas: BigInt(400000), // Set gas limit
+      });
 
     } catch (err: unknown) {
       console.error("Review submission failed:", err);
 
-      // Narrow the type
-      if (typeof err === "object" && err !== null && "reason" in err) {
-        const reason = (err as { reason?: string }).reason;
+      let errorMessage = "❌ Failed to submit review. Please try again.";
 
-        if (reason?.includes("Already reviewed")) {
-          setError("❌ You have already reviewed this project");
-        } else if (reason?.includes("Cannot review own project")) {
-          setError("❌ You cannot review your own project");
-        } else if (reason?.includes("Comment too short")) {
-          setError("❌ Review comment must be at least 10 characters");
-        } else if (reason?.includes("insufficient funds")) {
-          setError("❌ Insufficient ETH balance for gas fees");
-        } else if (reason) {
-          setError(`❌ ${reason}`);
-        } else {
-          setError("❌ Failed to submit review. Please try again.");
+      if (typeof err === "object" && err !== null) {
+        const errorObj = err as { message?: string };
+        if (errorObj.message) {
+          errorMessage = `❌ ${errorObj.message}`;
         }
-      } else {
-        setError("❌ Failed to submit review. Please try again.");
       }
-    } finally {
-      setIsSubmitting(false);
+      
+      setError(errorMessage);
     }
   };
+
+  // Clear error when modal closes
+  useEffect(() => {
+    if (!onClose) { // Only clear error if this is not in a modal
+      setError('');
+    }
+  }, [onClose]);
 
   const getRatingLabel = (rating: number) => {
     const labels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
     return labels[rating] || '';
   };
+
+  // Determine if form is submitting
+  const isSubmitting = isPending || isConfirming;
 
   return (
     <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-lg">
@@ -105,6 +146,16 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
           </button>
         )}
       </div>
+
+      {/* Wallet Connection Check */}
+      {!isConnected && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <p className="text-yellow-800 text-sm flex items-center">
+            <span className="mr-2">⚠️</span>
+            Please connect your wallet to submit a review
+          </p>
+        </div>
+      )}
 
       <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
         <p className="text-green-800 text-sm flex items-center">
@@ -162,6 +213,25 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
           </p>
         </div>
 
+        {/* Transaction Status */}
+        {hash && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start">
+              <span className="text-blue-500 text-xl mr-2">📝</span>
+              <div>
+                <p className="text-sm text-blue-800 font-medium">
+                  Transaction Hash: {hash}
+                </p>
+                {isConfirming && (
+                  <p className="text-xs text-blue-700 mt-1">
+                    ⏳ Waiting for confirmation...
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Error Display */}
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -178,13 +248,18 @@ export default function ReviewForm({ projectId, onReviewSubmitted, onClose }: Re
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isSubmitting || rating === 0 || comment.trim().length < 10}
+          disabled={isSubmitting || rating === 0 || comment.trim().length < 10 || !isConnected}
           className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white py-3 px-4 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:transform-none"
         >
           {isSubmitting ? (
             <span className="flex items-center justify-center">
               <span className="animate-spin mr-2">⏳</span>
-              Submitting Review...
+              {isPending ? 'Submitting Review...' : 'Confirming...'}
+            </span>
+          ) : !isConnected ? (
+            <span className="flex items-center justify-center">
+              <span className="mr-2">🔗</span>
+              Connect Wallet First
             </span>
           ) : (
             <span className="flex items-center justify-center">

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ethers } from 'ethers';
+import { useWriteContract, useAccount } from 'wagmi';
+import { createPublicClient, http } from 'viem';
+import { base } from 'viem/chains';
 import contractInfo from '../lib/contract-info.json';
-import StarRating from './StarRating'; // ADD THIS IMPORT
+import StarRating from './StarRating';
 
 interface Review {
   id: number;
@@ -18,91 +20,69 @@ interface ReviewsListProps {
 }
 
 export default function ReviewsList({ projectId, refreshTrigger }: ReviewsListProps) {
+  const { isConnected } = useAccount();
+  const { writeContract } = useWriteContract();
+  
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [contract, setContract] = useState<ethers.Contract | null>(null);
+  const [publicClient, setPublicClient] = useState<any>(null);
 
-  // Initialize contract connection
+  // Initialize public client for reading
   useEffect(() => {
-    const initContract = async () => {
-      try {
-        const provider = new ethers.providers.JsonRpcProvider('https://mainnet.base.org');
-        const contractInstance = new ethers.Contract(
-          contractInfo.contractAddress,
-          contractInfo.abi,
-          provider
-        );
-        setContract(contractInstance);
-      } catch (error) {
-        console.error('Error initializing contract:', error);
-      }
-    };
-
-    initContract();
+    const client = createPublicClient({
+      chain: base,
+      transport: http()
+    });
+    setPublicClient(client);
   }, []);
 
-  // Listen for new ReviewSubmitted events
+  // Listen for new ReviewSubmitted events (simplified version)
   useEffect(() => {
-    if (!contract) return;
+    if (!publicClient) return;
 
-    const handleReviewSubmitted = (
-      reviewId: ethers.BigNumber,
-      submittedProjectId: ethers.BigNumber,
-      reviewer: string,
-      rating: number,
-      //event: ethers.Event
-    ) => {
-      console.log('New review event:', {
-        reviewId: reviewId.toNumber(),
-        projectId: submittedProjectId.toNumber(),
-        reviewer,
-        rating
-      });
-      
-      // Only refresh if this review is for the current project
-      if (submittedProjectId.toNumber() === parseInt(projectId)) {
-        console.log('✅ New review for current project - refreshing!');
-        setTimeout(() => fetchReviews(), 2000); // Small delay to ensure blockchain is updated
-      }
-    };
-
-    // Listen to ReviewSubmitted events
-    contract.on('ReviewSubmitted', handleReviewSubmitted);
-
-    // Cleanup listener on unmount
-    return () => {
-      contract.off('ReviewSubmitted', handleReviewSubmitted);
-    };
-  }, [contract, projectId]);
+    // For now, we'll rely on refreshTrigger to update reviews
+    // Event listening with viem can be more complex and might not be necessary
+    // if the parent component handles refresh properly
+  }, [publicClient, projectId]);
 
   // Fetch reviews function
   const fetchReviews = async () => {
-    if (!contract) return;
+    if (!publicClient) return;
     
     setIsLoading(true);
     console.log('Fetching reviews for project:', projectId);
     
     try {
       // Get all review IDs for this project
-      const reviewIds = await contract.getProjectReviews(parseInt(projectId));
+      const reviewIds = await publicClient.readContract({
+        address: contractInfo.contractAddress as `0x${string}`,
+        abi: contractInfo.abi,
+        functionName: 'getProjectReviews',
+        args: [parseInt(projectId)],
+      }) as bigint[];
       
       const reviewsData: Review[] = [];
 
       for (let i = 0; i < reviewIds.length; i++) {
         try {
-          const review = await contract.reviews(reviewIds[i]);
+          const review = await publicClient.readContract({
+            address: contractInfo.contractAddress as `0x${string}`,
+            abi: contractInfo.abi,
+            functionName: 'reviews',
+            args: [reviewIds[i]],
+          }) as any;
           
           if (review.isActive) {
             // Add debug logging to see what rating we're getting
             console.log('Review rating from blockchain:', review.rating);
             
             reviewsData.push({
-              id: review.id.toNumber(),
-              rating: review.rating, // This should be the actual rating (like 2)
+              id: Number(review.id),
+              rating: Number(review.rating), // Convert BigInt to number
               comment: review.comment,
               reviewer: review.reviewer,
-              timestamp: review.timestamp.toNumber(),
-              helpfulVotes: review.helpfulVotes.toNumber()
+              timestamp: Number(review.timestamp),
+              helpfulVotes: Number(review.helpfulVotes)
             });
           }
         } catch (error) {
@@ -124,36 +104,41 @@ export default function ReviewsList({ projectId, refreshTrigger }: ReviewsListPr
 
   // Fetch reviews on component mount and when refreshTrigger changes
   useEffect(() => {
-    if (contract) {
+    if (publicClient) {
       fetchReviews();
     }
-  }, [contract, projectId, refreshTrigger]);
+  }, [publicClient, projectId, refreshTrigger]);
 
   const handleHelpfulVote = async (reviewId: number) => {
     try {
-      if (!window.ethereum) throw new Error('Wallet not found');
-      
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send('eth_requestAccounts', []);
-      const signer = provider.getSigner();
+      if (!isConnected) {
+        alert('Please connect your wallet first');
+        return;
+      }
 
-      const contractWithSigner = new ethers.Contract(
-        contractInfo.contractAddress,
-        contractInfo.abi,
-        signer
-      );
-
-      const tx = await contractWithSigner.voteHelpful(reviewId);
-      await tx.wait();
+      console.log('Voting helpful for review:', reviewId);
       
-      // Refresh reviews to show updated vote count
-      fetchReviews();
+      writeContract({
+        address: contractInfo.contractAddress as `0x${string}`,
+        abi: contractInfo.abi,
+        functionName: 'voteHelpful',
+        args: [reviewId],
+      });
+
+      // Refresh reviews after a short delay to show updated vote count
+      setTimeout(() => {
+        fetchReviews();
+      }, 3000);
       
     } catch (error: any) {
-      if (error.reason?.includes('Already voted')) {
+      console.error('Error voting helpful:', error);
+      
+      if (error.message?.includes('Already voted')) {
         alert('You have already voted on this review');
+      } else if (error.message?.includes('user rejected') || error.message?.includes('User rejected')) {
+        // User cancelled transaction, do nothing
       } else {
-        console.error('Error voting helpful:', error);
+        alert('Failed to vote. Please try again.');
       }
     }
   };
@@ -219,11 +204,20 @@ export default function ReviewsList({ projectId, refreshTrigger }: ReviewsListPr
           <div className="flex items-center justify-between">
             <button
               onClick={() => handleHelpfulVote(review.id)}
-              className="flex items-center space-x-1 text-sm text-gray-600 hover:text-blue-600 transition-colors"
+              disabled={!isConnected}
+              className={`flex items-center space-x-1 text-sm transition-colors ${
+                !isConnected 
+                  ? 'text-gray-400 cursor-not-allowed' 
+                  : 'text-gray-600 hover:text-blue-600'
+              }`}
+              title={!isConnected ? 'Connect wallet to vote' : 'Vote helpful'}
             >
               <span>👍</span>
               <span>Helpful ({review.helpfulVotes})</span>
             </button>
+            {!isConnected && (
+              <span className="text-xs text-gray-500">Connect wallet to vote</span>
+            )}
           </div>
         </div>
       ))}
