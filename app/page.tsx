@@ -29,19 +29,10 @@ function HomePageContent() {
   const [connectedWallet, setConnectedWallet] = useState<string>('');
   const [showWalletMenu, setShowWalletMenu] = useState(false);
 
-  useEffect(() => {
-    const initializeFarcasterSDK = async () => {
-      try {
-        // Call ready() to dismiss the splash screen
-        await sdk.actions.ready();
-        console.log('Farcaster SDK ready called successfully');
-      } catch (error) {
-        console.error('Failed to initialize Farcaster SDK:', error);
-      }
-    };
+useEffect(() => {
+  sdk.actions.ready();
+}, []);
 
-    initializeFarcasterSDK();
-  }, []);
 
   useEffect(() => {
     if (!isFrameReady) setFrameReady();
