@@ -18,16 +18,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const manifest = {
     version: "next",
-    imageUrl: HERO_IMAGE,
-    button: {
-      title: `🚀 Launch ${PROJECT_NAME}`,
-      action: {
-        type: "launch_miniapp", // 👈 using miniapp type
-        name: PROJECT_NAME,
-        url: URL,
-        splashImageUrl: SPLASH_IMAGE,
-        splashBackgroundColor: SPLASH_BG,
-      },
+    imageUrl: "https://basebuilder.vercel.app/logo.png",
+   button: {
+    title: "🚀 Launch BaseBuilder",
+    action: {
+      type: "launch_miniapp",
+      name: "BaseBuilder",
+      url: "https://basebuilder.vercel.app",
+      splashBackgroundColor: "#000000",
+    },
     },
   };
 
@@ -42,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     other: {
       "fc:frame": manifestJSON,
-      "fc:miniapp": manifestJSON, // ✅ will now be included in <head>
+      "fc:miniapp": manifestJSON,
     },
   };
 }
