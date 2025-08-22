@@ -119,12 +119,12 @@ export default function ReviewsList({ projectId, refreshTrigger }: ReviewsListPr
           
           if (isActive) {
             reviewsData.push({
-              id: Number(review[0]),           // id at index 0
-              rating: Number(review[3]),       // rating at index 3
-              comment: String(review[4]),      // comment at index 4
-              reviewer: String(review[2]),     // reviewer at index 2 (FIXED: ensure string)
-              timestamp: Number(review[5]),    // timestamp at index 5
-              helpfulVotes: Number(review[6])  // helpfulVotes at index 6
+              id: Number(review[0]),         
+              rating: Number(review[3]),       
+              comment: String(review[4]),      
+              reviewer: String(review[2]),     
+              timestamp: Number(review[5]),    
+              helpfulVotes: Number(review[6])
             });
           }
         } catch (error) {
