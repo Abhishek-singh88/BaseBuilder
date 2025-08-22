@@ -12,6 +12,7 @@ import contractInfo from './lib/contract-info.json';
 import StarRating from './components/StarRating';
 import { Project } from './types';
 import { ToastProvider, useToast } from './components/Toast';
+import { sdk } from '@farcaster/miniapp-sdk';
 
 function HomePageContent() {
   const { context, isFrameReady, setFrameReady } = useMiniKit();
@@ -27,6 +28,20 @@ function HomePageContent() {
   // Wallet connection states
   const [connectedWallet, setConnectedWallet] = useState<string>('');
   const [showWalletMenu, setShowWalletMenu] = useState(false);
+
+  useEffect(() => {
+    const initializeFarcasterSDK = async () => {
+      try {
+        // Call ready() to dismiss the splash screen
+        await sdk.actions.ready();
+        console.log('Farcaster SDK ready called successfully');
+      } catch (error) {
+        console.error('Failed to initialize Farcaster SDK:', error);
+      }
+    };
+
+    initializeFarcasterSDK();
+  }, []);
 
   useEffect(() => {
     if (!isFrameReady) setFrameReady();
