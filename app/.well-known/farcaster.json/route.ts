@@ -15,12 +15,11 @@ export async function GET() {
   const URL = "https://basebuilder.vercel.app";
 
   return Response.json({
-    accountAssociation: {
-      header: "eyJmaWQiOjczNDEsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhEMjc4ZkZCNjVBMDYyZDA5OTTRCMUI5OEIzYmQ5M0Q5NjVGMUM2ZDBBIn0",
-      // Updated payload with your actual domain
-      payload: "eyJkb21haW4iOiJiYXNlYnVpbGRlci52ZXJjZWwuYXBwIn0",
-      signature: "MHg3ZTM5YjQ3ZjkzNmI5ZjI3MDk4YTlhYWI2NDVhYzM2YzNjMmRkODUzYjNiYmQ2Mzc5M2U5ZjVhN2U4OGY0M2MyNzEwN2Q5MTc4YTg1Y2E0ZDE2NmVmZWYzY2I3YzY3NTA1Y2IzZDMzZjlkOGEzZGExZGFkMWNhMzMwOWQzOGE1YjFj"
-    },
+     "accountAssociation": {
+    "header": "eyJmaWQiOjI3ODk3MSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDhiNzFkMzcxN2M2NTkxMTM2ODdiQ2M3ODY2MzlEQ2Q5NTQwNTFmRjYifQ",
+    "payload": "eyJkb21haW4iOiJiYXNlYnVpbGRlci52ZXJjZWwuYXBwIn0",
+    "signature": "MHg5YTI1ZDIwYjJiNTk0Mjk5OTMwYzQwNmFhNjAwNzRkMTM4N2MyY2IxNmI4OTBjNGQzZDFjMGFjZWExODdmNThhMjI2M2I2NzNmOGU3Y2E4MzYyOGRhNzY2YzkzYTIwN2NhNzQyM2I0ZTJmMmNkNzY1ODZiZjVjZGVjZmFiOGQyMDFj"
+  },
     frame: {
       version: "1", 
       name: "BaseBuilder",
