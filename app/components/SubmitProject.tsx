@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { ethers } from 'ethers';
+import React, { useState, useEffect } from 'react';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount } from 'wagmi';
+import { parseEther } from 'viem';
 import contractInfo from '../lib/contract-info.json';
 import { useToast } from './Toast';
 
@@ -11,6 +12,14 @@ interface SubmitProjectProps {
 
 export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProjectProps) {
   const { showToast } = useToast();
+  const { address, isConnected } = useAccount();
+  
+  // Wagmi hooks for contract interaction
+  const { writeContract, data: hash, isPending, error: writeError } = useWriteContract();
+  const { isLoading: isConfirming, isSuccess, error: receiptError } = useWaitForTransactionReceipt({
+    hash,
+  });
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -21,10 +30,62 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
     builderBio: '',
     socialHandle: ''
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
   const [error, setError] = useState('');
 
   const categories = ['DeFi', 'Social', 'Games', 'NFTs', 'Tools', 'Infrastructure'];
+
+  // Handle transaction success
+  useEffect(() => {
+    if (isSuccess && hash) {
+      console.log('Transaction confirmed:', hash);
+      showToast(`🎉 Project submitted successfully! Transaction: ${hash}`, 'success');
+      
+      // Reset form and close
+      setFormData({
+        name: '',
+        description: '',
+        category: 'DeFi',
+        url: '',
+        imageUrl: '',
+        builderName: '',
+        builderBio: '',
+        socialHandle: ''
+      });
+      
+      onSuccess();
+      onClose();
+    }
+  }, [isSuccess, hash, showToast, onSuccess, onClose]);
+
+  // Handle errors
+  useEffect(() => {
+    if (writeError || receiptError) {
+      const err = writeError || receiptError;
+      console.error("Submission error:", err);
+
+      let errorMessage = "Submission failed. Please try again.";
+
+      if (typeof err === "object" && err !== null) {
+        const errorObj = err as { code?: number; message?: string; cause?: { code?: number } };
+
+        // Handle specific error codes
+        if (errorObj.code === 4001 || errorObj.cause?.code === 4001) {
+          errorMessage = "Transaction cancelled by user.";
+        } else if (errorObj.code === -32602) {
+          errorMessage = "Invalid parameters. Check your input data.";
+        } else if (errorObj.message?.includes("user rejected") || errorObj.message?.includes("User rejected")) {
+          errorMessage = "Transaction rejected by user.";
+        } else if (errorObj.message?.includes("insufficient funds")) {
+          errorMessage = "Insufficient ETH balance for transaction + gas fees.";
+        } else if (errorObj.message) {
+          errorMessage = errorObj.message;
+        }
+      }
+
+      setError(errorMessage);
+    }
+  }, [writeError, receiptError]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -34,114 +95,76 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsSubmitting(true);
-  setError('');
+    e.preventDefault();
+    setError('');
 
-  try {
-    console.log('Starting submission...');
+    try {
+      console.log('Starting submission...');
 
-    // Check if wallet is available
-    if (!window.ethereum) {
-      throw new Error('Wallet not detected! Please install a Web3 wallet.');
-    }
-
-    // Request account access
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send("eth_requestAccounts", []);
-    
-    // Check network
-    const network = await provider.getNetwork();
-    console.log('Connected to network:', network.chainId);
-    
-    if (network.chainId !== 8453) {
-      throw new Error('Please switch to Base mainnet network (Chain ID: 8453)');
-    }
-
-    const signer = provider.getSigner();
-    const userAddress = await signer.getAddress();
-    console.log('User address:', userAddress);
-
-    // Create contract instance
-    const contract = new ethers.Contract(
-      contractInfo.contractAddress,
-      contractInfo.abi,
-      signer
-    );
-
-    console.log('Contract address:', contractInfo.contractAddress);
-
-    // Submit project with better gas settings
-    const tx = await contract.submitProject(
-      formData.name,
-      formData.description,
-      formData.category,
-      formData.url,
-      formData.imageUrl,
-      formData.builderName,
-      formData.builderBio,
-      formData.socialHandle,
-      {
-        value: ethers.utils.parseEther("0.001"),
-        gasLimit: 600000, // Increased gas limit
-        gasPrice: ethers.utils.parseUnits("2", "gwei") // Explicit gas price
+      // Check if wallet is connected
+      if (!isConnected || !address) {
+        throw new Error('Wallet not connected! Please connect your wallet first.');
       }
-    );
 
-    console.log('Transaction submitted:', tx.hash);
-    console.log('Waiting for confirmation...');
-    
-    // Wait for transaction to be mined
-    const receipt = await tx.wait(1); // Wait for 1 confirmation
-    
-    console.log('Transaction confirmed in block:', receipt.blockNumber);
-    console.log('Gas used:', receipt.gasUsed.toString());
-    
-    showToast(`🎉 Project submitted successfully! Transaction: ${tx.hash}`, 'success');
-    
-    // Reset form and close
-    setFormData({
-      name: '',
-      description: '',
-      category: 'DeFi',
-      url: '',
-      imageUrl: '',
-      builderName: '',
-      builderBio: '',
-      socialHandle: ''
-    });
-    
-    onSuccess();
-    onClose();
+      console.log('User address:', address);
+      console.log('Contract address:', contractInfo.contractAddress);
 
-} catch (err: unknown) {
-  console.error("Submission error:", err);
+      // Submit project using Wagmi
+      writeContract({
+        address: contractInfo.contractAddress as `0x${string}`,
+        abi: contractInfo.abi,
+        functionName: 'submitProject',
+        args: [
+          formData.name,
+          formData.description,
+          formData.category,
+          formData.url,
+          formData.imageUrl,
+          formData.builderName,
+          formData.builderBio,
+          formData.socialHandle,
+        ],
+        value: parseEther("0.001"), // 0.001 ETH submission fee
+      });
 
-  let errorMessage = "Submission failed. Please try again.";
+      console.log('Transaction submitted');
 
-  if (typeof err === "object" && err !== null) {
-    const errorObj = err as { code?: number; message?: string };
+    } catch (err: unknown) {
+      console.error("Submission error:", err);
 
-    if (errorObj.code === 4001) {
-      errorMessage = "Transaction cancelled by user.";
-    } else if (errorObj.code === -32602) {
-      errorMessage = "Invalid parameters. Check your input data.";
-    } else if (errorObj.message?.includes("user rejected")) {
-      errorMessage = "Transaction rejected by user.";
-    } else if (errorObj.message?.includes("insufficient funds")) {
-      errorMessage =
-        "Insufficient ETH balance for transaction + gas fees.";
-    } else if (errorObj.message) {
-      errorMessage = errorObj.message;
+      let errorMessage = "Submission failed. Please try again.";
+
+      if (typeof err === "object" && err !== null) {
+        const errorObj = err as { code?: number; message?: string };
+
+        if (errorObj.code === 4001) {
+          errorMessage = "Transaction cancelled by user.";
+        } else if (errorObj.code === -32602) {
+          errorMessage = "Invalid parameters. Check your input data.";
+        } else if (errorObj.message?.includes("user rejected")) {
+          errorMessage = "Transaction rejected by user.";
+        } else if (errorObj.message?.includes("insufficient funds")) {
+          errorMessage = "Insufficient ETH balance for transaction + gas fees.";
+        } else if (errorObj.message) {
+          errorMessage = errorObj.message;
+        }
+      }
+      
+      setError(errorMessage);
     }
-  }
-    setError(errorMessage);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
+
+  // Clear error when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setError('');
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
+
+  // Determine if form is submitting (pending write or confirming)
+  const isSubmitting = isPending || isConfirming;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -291,6 +314,23 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
             </div>
           </div>
 
+          {/* Wallet Connection Check */}
+          {!isConnected && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <span className="text-yellow-500 text-xl mr-2">⚠️</span>
+                <div>
+                  <p className="text-sm text-yellow-800 font-medium">
+                    Wallet Not Connected
+                  </p>
+                  <p className="text-xs text-yellow-700 mt-1">
+                    Please connect your wallet to submit a project.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Submission Fee Notice */}
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <div className="flex items-start">
@@ -305,6 +345,25 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
               </div>
             </div>
           </div>
+
+          {/* Transaction Status */}
+          {hash && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <span className="text-blue-500 text-xl mr-2">📝</span>
+                <div>
+                  <p className="text-sm text-blue-800 font-medium">
+                    Transaction Hash: {hash}
+                  </p>
+                  {isConfirming && (
+                    <p className="text-xs text-blue-700 mt-1">
+                      ⏳ Waiting for confirmation...
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Error Display */}
           {error && (
@@ -321,20 +380,23 @@ export default function SubmitProject({ isOpen, onClose, onSuccess }: SubmitProj
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              disabled={isSubmitting}
+              className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !isConnected}
               className="flex-1 bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {isSubmitting ? (
                 <span className="flex items-center justify-center">
                   <span className="animate-spin mr-2">⏳</span>
-                  Submitting...
+                  {isPending ? 'Submitting...' : 'Confirming...'}
                 </span>
+              ) : !isConnected ? (
+                '🔗 Connect Wallet First'
               ) : (
                 '🚀 Submit Project (0.001 ETH)'
               )}

@@ -7,12 +7,14 @@ import ProjectModal from './components/ProjectModal';
 import SearchBar from './components/SearchBar';
 import CategoryFilter from './components/CategoryFilter';
 import SubmitProject from './components/SubmitProject';
-import { ethers } from 'ethers';
-import contractInfo from './lib/contract-info.json';
 import StarRating from './components/StarRating';
 import { Project } from './types';
 import { ToastProvider, useToast } from './components/Toast';
 import { sdk } from '@farcaster/miniapp-sdk';
+import { useWalletConnection } from './hooks/useWalletConnection';
+import { createPublicClient, http } from 'viem';
+import { base } from 'viem/chains';
+import contractInfo from './lib/contract-info.json';
 
 function HomePageContent() {
   const { context, isFrameReady, setFrameReady } = useMiniKit();
@@ -25,44 +27,17 @@ function HomePageContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshToggle, setRefreshToggle] = useState(false);
 
-  // Wallet connection states
-  const [connectedWallet, setConnectedWallet] = useState<string>('');
+  // Wagmi wallet connection
+  const { address: connectedWallet, isConnected, connect: connectWallet, disconnect: disconnectWallet } = useWalletConnection();
   const [showWalletMenu, setShowWalletMenu] = useState(false);
 
-useEffect(() => {
-  sdk.actions.ready();
-}, []);
-
+  useEffect(() => {
+    sdk.actions.ready();
+  }, []);
 
   useEffect(() => {
     if (!isFrameReady) setFrameReady();
   }, [isFrameReady, setFrameReady]);
-
- // Modified wallet connection check - only listen for changes, don't auto-connect
-useEffect(() => {
-  // Only listen for account changes, don't check initially
-  if (window.ethereum) {
-    const handleAccountsChanged = (accounts: string[]) => {
-      if (accounts.length > 0) {
-        setConnectedWallet(accounts[0]);
-      } else {
-        setConnectedWallet('');
-        setShowWalletMenu(false);
-      }
-    };
-
-    // Listen for account changes
-    window.ethereum.on('accountsChanged', handleAccountsChanged);
-
-    // Cleanup
-    return () => {
-      if (window.ethereum) {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-      }
-    };
-  }
-}, []);
-
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -89,21 +64,22 @@ useEffect(() => {
       console.log('🔍 Starting to fetch projects from blockchain...');
 
       try {
-        // Create provider for reading data (no wallet needed for reading)
-        const provider = new ethers.providers.JsonRpcProvider('https://mainnet.base.org');
-
-        // Create contract instance
-        const contract = new ethers.Contract(
-          contractInfo.contractAddress,
-          contractInfo.abi,
-          provider
-        );
+        // Create public client for reading data
+        const publicClient = createPublicClient({
+          chain: base,
+          transport: http()
+        });
 
         console.log('📋 Connected to contract:', contractInfo.contractAddress);
         console.log('🌐 Network: Base Mainnet');
 
         // Get all project IDs
-        const projectIds = await contract.getAllProjects();
+        const projectIds = await publicClient.readContract({
+          address: contractInfo.contractAddress as `0x${string}`,
+          abi: contractInfo.abi,
+          functionName: 'getAllProjects',
+        }) as bigint[];
+
         console.log('📊 Found project IDs:', projectIds.length, projectIds);
 
         const projectsData: Project[] = [];
@@ -121,7 +97,12 @@ useEffect(() => {
           const projectId = projectIds[i];
           try {
             console.log(`📦 Fetching project ${projectId}...`);
-            const [project, averageRating] = await contract.getProject(projectId);
+            const [project, averageRating] = await publicClient.readContract({
+              address: contractInfo.contractAddress as `0x${string}`,
+              abi: contractInfo.abi,
+              functionName: 'getProject',
+              args: [projectId],
+            }) as [any, bigint];
 
             console.log('📋 Project data:', {
               id: project.id.toString(),
@@ -143,7 +124,7 @@ useEffect(() => {
 
               // Fixed rating scaling - ensure it's between 0 and 5
               const scaledRating = averageRating > 0 ?
-                Math.min(5, Math.max(0, averageRating / 100)) : 0;
+                Math.min(5, Math.max(0, Number(averageRating) / 100)) : 0;
 
               projectsData.push({
                 id: project.id.toString(),
@@ -151,13 +132,13 @@ useEffect(() => {
                 description: project.description,
                 category: project.category,
                 rating: Number(scaledRating.toFixed(1)), // Proper rating scaling
-                reviewCount: project.reviewCount.toNumber(),
+                reviewCount: Number(project.reviewCount),
                 image: project.imageUrl || '/api/placeholder/400/300',
                 url: project.url,
                 tags: categoryTags[project.category as keyof typeof categoryTags] || [project.category],
                 builder: project.name + ' Team', // Fallback builder name
                 builderAddress: project.builder,
-                launchDate: new Date(project.timestamp.toNumber() * 1000).toLocaleDateString(),
+                launchDate: new Date(Number(project.timestamp) * 1000).toLocaleDateString(),
                 featured: i < 2, // Make first 2 projects featured
                 isActive: project.isActive
               });
@@ -172,7 +153,6 @@ useEffect(() => {
 
       } catch (error) {
         console.error('❌ Error fetching projects from blockchain:', error);
-        
         
         console.log('⚠️ Blockchain fetch failed - showing empty state');
         setProjects([]); 
@@ -194,35 +174,22 @@ useEffect(() => {
     return matchesSearch && matchesCategory;
   });
 
-  const handleConnectWallet = async () => {
-    try {
-      if (window.ethereum) {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-      } else {
-        showToast('Please install MetaMask or another Web3 wallet', 'error');
-      }
-    } catch (error) {
-      console.error('Failed to connect wallet:', error);
-      showToast('Failed to connect wallet', 'error');
-    }
+  const handleConnectWallet = () => {
+    connectWallet();
   };
 
-  const handleDisconnectWallet = async () => {
-    try {
-      // Clear the connected wallet state
-      setConnectedWallet('');
-      setShowWalletMenu(false);
-
-      showToast('Please disconnect from your wallet extension (MetaMask, etc.) to fully disconnect.', 'info');
-    } catch (error) {
-      console.error('Error disconnecting wallet:', error);
-    }
+  const handleDisconnectWallet = () => {
+    disconnectWallet();
+    setShowWalletMenu(false);
+    showToast('Wallet disconnected', 'success');
   };
 
   const handleCopyAddress = () => {
-    navigator.clipboard.writeText(connectedWallet);
-    setShowWalletMenu(false);
-    showToast('Address copied to clipboard!', 'success');
+    if (connectedWallet) {
+      navigator.clipboard.writeText(connectedWallet);
+      setShowWalletMenu(false);
+      showToast('Address copied to clipboard!', 'success');
+    }
   };
 
   return (
@@ -247,7 +214,7 @@ useEffect(() => {
 
           {/* Enhanced wallet connection display */}
           <div className="flex items-center space-x-4">
-            {connectedWallet ? (
+            {isConnected && connectedWallet ? (
               <div className="relative wallet-dropdown-container">
                 {/* Connected Wallet Display - Clickable */}
                 <button
