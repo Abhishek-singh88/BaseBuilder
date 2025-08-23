@@ -153,16 +153,16 @@ function HomePageContent() {
 
       } catch (error) {
         console.error('❌ Error fetching projects from blockchain:', error);
-
+        
         console.log('⚠️ Blockchain fetch failed - showing empty state');
-        setProjects([]);
+        setProjects([]); 
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchProjectsFromBlockchain();
-  }, [refreshToggle]);
+  }, [refreshToggle]); 
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -197,102 +197,114 @@ function HomePageContent() {
       {/* Header */}
      // Replace your header section with this more compact version:
 
-      <header className="bg-white shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <img
-              src="/logo.png"
-              alt="BaseBuilder Logo"
-              className="h-20 w-20 object-contain"
-            />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">BaseBuilder</h1>
-              <p className="text-sm text-gray-600">Discover the Best Base Apps</p>
-            </div>
-            <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">
-              SHOWCASE
-            </span>
-          </div>
+<header className="bg-white shadow-sm">
+  <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="flex items-center space-x-3">
+      <img
+        src="/logo.png"
+        alt="BaseBuilder Logo"
+        className="h-20 w-20 object-contain"
+      />
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">BaseBuilder</h1>
+        <p className="text-sm text-gray-600">Discover the Best Base Apps</p>
+      </div>
+      <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">
+        SHOWCASE
+      </span>
+    </div>
 
-          {/* Ultra-compact wallet connection display */}
-          <div className="flex items-center space-x-1">
-            {isConnected && connectedWallet ? (
-              <div className="relative wallet-dropdown-container">
-                {/* Ultra-Compact Connected Wallet Display */}
-                <button
-                  onClick={() => setShowWalletMenu(!showWalletMenu)}
-                  className="flex items-center space-x-1 hover:bg-gray-50 rounded-lg p-1 transition-colors"
-                >
-                  {/* Ultra-Compact Wallet Info */}
-                  <div className="flex items-center space-x-1 bg-green-50 border border-green-200 rounded px-1.5 py-1">
-                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                    <span className="text-xs text-green-600 font-mono">
-                      {connectedWallet.slice(0, 3)}..{connectedWallet.slice(-3)}
-                    </span>
+    {/* Compact wallet connection display */}
+    <div className="flex items-center space-x-2">
+      {isConnected && connectedWallet ? (
+        <div className="relative wallet-dropdown-container">
+          {/* Compact Connected Wallet Display */}
+          <button
+            onClick={() => setShowWalletMenu(!showWalletMenu)}
+            className="flex items-center space-x-2 hover:bg-gray-50 rounded-lg p-2 transition-colors"
+          >
+            {/* Compact Wallet Info */}
+            <div className="flex items-center space-x-1 bg-green-50 border border-green-200 rounded-lg px-2 py-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span className="text-xs text-green-600 font-mono">
+                {connectedWallet.slice(0, 4)}...{connectedWallet.slice(-4)}
+              </span>
+            </div>
+
+            {/* Small Dropdown Arrow */}
+            <div className="text-gray-400">
+              <svg
+                className={`w-3 h-3 transition-transform ${showWalletMenu ? 'rotate-180' : ''}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </button>
+
+          {/* Dropdown Menu (unchanged) */}
+          {showWalletMenu && (
+            <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+              <div className="p-4 border-b border-gray-100">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold">W</span>
                   </div>
+                  <div>
+                    <p className="font-medium text-gray-900">Wallet Connected</p>
+                    <p className="text-sm text-gray-500 font-mono break-all">{connectedWallet}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-2">
+                <button
+                  onClick={handleCopyAddress}
+                  className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  <span className="text-gray-400">📋</span>
+                  <span className="text-gray-700">Copy Address</span>
                 </button>
 
-                {/* Dropdown Menu (unchanged) */}
-                {showWalletMenu && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                    <div className="p-4 border-b border-gray-100">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                          <span className="text-white font-bold">W</span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">Wallet Connected</p>
-                          <p className="text-sm text-gray-500 font-mono break-all">{connectedWallet}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-2">
-                      <button
-                        onClick={handleCopyAddress}
-                        className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-gray-50 rounded-lg transition-colors"
-                      >
-                        <span className="text-gray-400">📋</span>
-                        <span className="text-gray-700">Copy Address</span>
-                      </button>
-
-                      <button
-                        onClick={handleDisconnectWallet}
-                        className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-red-50 rounded-lg transition-colors text-red-600"
-                      >
-                        <span>🔌</span>
-                        <span>Disconnect Wallet</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <button
+                  onClick={handleDisconnectWallet}
+                  className="w-full flex items-center space-x-3 px-3 py-2 text-left hover:bg-red-50 rounded-lg transition-colors text-red-600"
+                >
+                  <span>🔌</span>
+                  <span>Disconnect Wallet</span>
+                </button>
               </div>
-            ) : (
-              <button
-                onClick={handleConnectWallet}
-                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
-              >
-                <span>🔗</span>
-                <span>Connect</span>
-              </button>
-            )}
-
-            {/* Compact Farcaster User (if available) */}
-            {context?.user && (
-              <div className="flex items-center space-x-1">
-                <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
-                  <span className="text-white text-xs font-semibold">
-                    {context.user.displayName?.[0] || '👤'}
-                  </span>
-                </div>
-                <span className="text-xs text-gray-700 max-w-20 truncate">
-                  {context.user.displayName || `${context.user.fid}`}
-                </span>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-      </header>
+      ) : (
+        <button
+          onClick={handleConnectWallet}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+        >
+          <span>🔗</span>
+          <span>Connect</span>
+        </button>
+      )}
+
+      {/* Compact Farcaster User (if available) */}
+      {context?.user && (
+        <div className="flex items-center space-x-1">
+          <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+            <span className="text-white text-xs font-semibold">
+              {context.user.displayName?.[0] || '👤'}
+            </span>
+          </div>
+          <span className="text-xs text-gray-700 max-w-20 truncate">
+            {context.user.displayName || `${context.user.fid}`}
+          </span>
+        </div>
+      )}
+    </div>
+  </div>
+</header>
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 py-8">
