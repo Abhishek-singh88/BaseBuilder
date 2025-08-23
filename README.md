@@ -13,8 +13,8 @@
 BaseBuilder Showcase is a decentralized community-driven platform that serves as the **"Product Hunt for Base"**. It helps users discover, review, and showcase the best applications in the Base ecosystem while building a vibrant community around Base builders.
 
 ### 🌟 Live Demo
-- **Frontend**: [https://your-deployment-url.vercel.app](https://your-deployment-url.vercel.app)
-- **Smart Contract**: [`0xc7FAE06AD6c74442e7C263fe232F37B5eD5244B3`](https://sepolia.basescan.org/address/0xc7FAE06AD6c74442e7C263fe232F37B5eD5244B3)
+- **Frontend**: [https://farcaster.xyz/miniapps/yHA1HDmJheVU/basebuilder](https://farcaster.xyz/miniapps/yHA1HDmJheVU/basebuilder)
+- **Smart Contract**: [`0x68Bc61dE0e8AbAA547dEE2f8cAbb4A0261aB190c`](https://.basescan.org/address/0x68Bc61dE0e8AbAA547dEE2f8cAbb4A0261aB190c)
 
 ## 🚀 Features
 
