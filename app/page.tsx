@@ -153,16 +153,16 @@ function HomePageContent() {
 
       } catch (error) {
         console.error('❌ Error fetching projects from blockchain:', error);
-        
+
         console.log('⚠️ Blockchain fetch failed - showing empty state');
-        setProjects([]); 
+        setProjects([]);
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchProjectsFromBlockchain();
-  }, [refreshToggle]); 
+  }, [refreshToggle]);
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -195,6 +195,8 @@ function HomePageContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
+     // Replace your header section with this more compact version:
+
       <header className="bg-white shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -212,40 +214,25 @@ function HomePageContent() {
             </span>
           </div>
 
-          {/* Enhanced wallet connection display */}
-          <div className="flex items-center space-x-4">
+          {/* Ultra-compact wallet connection display */}
+          <div className="flex items-center space-x-1">
             {isConnected && connectedWallet ? (
               <div className="relative wallet-dropdown-container">
-                {/* Connected Wallet Display - Clickable */}
+                {/* Ultra-Compact Connected Wallet Display */}
                 <button
                   onClick={() => setShowWalletMenu(!showWalletMenu)}
-                  className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 transition-colors"
+                  className="flex items-center space-x-1 hover:bg-gray-50 rounded-lg p-1 transition-colors"
                 >
-                  {/* Wallet Info */}
-                  <div className="flex items-center space-x-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-green-700 font-medium">Connected</span>
-                      <span className="text-xs text-green-600 font-mono">
-                        {connectedWallet.slice(0, 6)}...{connectedWallet.slice(-4)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Dropdown Arrow */}
-                  <div className="text-gray-400">
-                    <svg
-                      className={`w-4 h-4 transition-transform ${showWalletMenu ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                  {/* Ultra-Compact Wallet Info */}
+                  <div className="flex items-center space-x-1 bg-green-50 border border-green-200 rounded px-1.5 py-1">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                    <span className="text-xs text-green-600 font-mono">
+                      {connectedWallet.slice(0, 3)}..{connectedWallet.slice(-3)}
+                    </span>
                   </div>
                 </button>
 
-                {/* Wallet Dropdown Menu */}
+                {/* Dropdown Menu (unchanged) */}
                 {showWalletMenu && (
                   <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                     <div className="p-4 border-b border-gray-100">
@@ -279,23 +266,6 @@ function HomePageContent() {
                     </div>
                   </div>
                 )}
-
-                {/* Farcaster User (if available) */}
-                {context?.user && (
-                  <div className="flex items-center space-x-2 ml-4">
-                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-semibold">
-                        {context.user.displayName?.[0] || '👤'}
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs text-gray-500">Farcaster</span>
-                      <span className="text-sm text-gray-700">
-                        {context.user.displayName || `FID: ${context.user.fid}`}
-                      </span>
-                    </div>
-                  </div>
-                )}
               </div>
             ) : (
               <button
@@ -303,8 +273,22 @@ function HomePageContent() {
                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
               >
                 <span>🔗</span>
-                <span>Connect Wallet</span>
+                <span>Connect</span>
               </button>
+            )}
+
+            {/* Compact Farcaster User (if available) */}
+            {context?.user && (
+              <div className="flex items-center space-x-1">
+                <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-semibold">
+                    {context.user.displayName?.[0] || '👤'}
+                  </span>
+                </div>
+                <span className="text-xs text-gray-700 max-w-20 truncate">
+                  {context.user.displayName || `${context.user.fid}`}
+                </span>
+              </div>
             )}
           </div>
         </div>
